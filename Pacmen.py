@@ -28,7 +28,7 @@ PLAYER_START_X = SCREEN_WIDTH / 2
 PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 5
 PLAYER_SCORE = 0
-#IN PERCENT
+# IN PERCENT
 CHANCE_OF_ENEMY_SPAWN = 50
 
 GAMESTATE = 1
@@ -40,8 +40,8 @@ ENEMY_SPAWN_POINTS = [
     [0, SCREEN_HEIGHT / 2]
 ]
 
-#delta_time in the MyGame updat function is in seconds
-#Therfore our ENEMY_SPAWN_SPEED is in seconds
+# delta_time in the MyGame updat function is in seconds
+# therfore our ENEMY_SPAWN_SPEED is in seconds
 ENEMY_SPAWN_SPEED = 1
 
 # ----------------------------------------------
@@ -140,10 +140,10 @@ class Enemy(arcade.Sprite):
         self.change_x = math.cos(angle)
         self.change_y = math.sin(angle)
 
-        #Rotates the enemy based on the angle
-        #The calculations above return the angle in radians
-        #But lucky for us the arcade sprite objects has a variable that rotates
-        #Based on radians
+        # Rotates the enemy based on the angle
+        # The calculations above return the angle in radians
+        # But lucky for us the arcade sprite objects has a variable that rotates
+        # Based on radians
         self.radians = angle
 
     def update(self):
@@ -194,6 +194,9 @@ class MyGame(arcade.Window):
         self.player_shot_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
         self.time_since_enemy_spawn = 0
+        self.frame_timer = 0
+        self.frame_count = 0
+        self.fps = 0
 
         # Create a Player object
         self.player_sprite = Player(PLAYER_START_X, PLAYER_START_Y)
@@ -222,10 +225,20 @@ class MyGame(arcade.Window):
             arcade.color.WHITE   # Color of text
         )
 
-    
+        arcade.draw_text(
+            "LIVES: {}".format(self.player_lives),  # Text to show
+            10,                  # X position
+            SCREEN_HEIGHT - 40,  # Y positon
+            arcade.color.WHITE   # Color of text
+        )
 
+        arcade.draw_text(
+            "FPS: {}".format(self.fps),  # Text to show
+            10,                  # X position
+            SCREEN_HEIGHT - 60,  # Y positon
+            arcade.color.WHITE   # Color of text
+        )
 
-        
 
     def on_update(self, delta_time):
         """
@@ -234,15 +247,36 @@ class MyGame(arcade.Window):
         delta_time: time since previus update in seconds
         """
 
-        self.time_since_enemy_spawn += delta_time
-        print(self.time_since_enemy_spawn)
+        # For some reason i have to kinda import the global variable PLAYER_LIVES
+        # to change it
+        global PLAYER_LIVES
 
-        #Checks timer
-        #Spawns an enemmy if the timer is equal or over ENEMY_SPAWN_SPEED
+        # Adds delta time to time_since_enemy_spawn and frame_timer
+        self.time_since_enemy_spawn += delta_time
+        self.frame_timer += delta_time
+        
+        # Increases frame count
+        self.frame_count += 1 
+
+        # print(self.time_since_enemy_spawn)
+
+        # Checks timer
+        # Spawns an enemmy if the timer is equal or over ENEMY_SPAWN_SPEED
         if self.time_since_enemy_spawn >= ENEMY_SPAWN_SPEED:
             enemy = Enemy(self.player_sprite)
             self.enemy_list.append(enemy)
             self.time_since_enemy_spawn = 0
+
+        # If frame timer is more than 1. (a second has passed)
+        if self.frame_timer >= 1:
+            # Resets the frame_timer
+            self.frame_timer = 0
+            # Sets self.fps to frame count every second
+            self.fps = self.frame_count
+            # Prints the fps
+            print("FPS: {}".format(self.fps))
+            # Resets frame_count
+            self.frame_count = 0
 
 
         # Update player sprite
@@ -254,25 +288,34 @@ class MyGame(arcade.Window):
         # Update the enemy sprite
         self.enemy_list.update()
 
-        #Loops through each shot
+
+        # Loops through each enemy to checks if an enemy has hit a shot
         for enemy in self.enemy_list:
-            #Checks if a shot collides with the enemy
+            # Checks if a shot collides with the enemy
             collisions = arcade.check_for_collision_with_list(enemy, self.player_shot_list)
-            #Kills the enemy if there is any collisons
+            # Kills the enemy if there is any collisons
             if len(collisions) > 0:
                 enemy.kill()
-            #Kills each colliding shot
+            # Kills each colliding shot
             for shot in collisions:
                 self.player_score += enemy.value
                 shot.kill()
                 print("Enemy killed!!!!!!!!!!!")
-                #Adds a point to the score
+                # Adds a point to the score
 
-        if len(arcade.check_for_collision_with_list(self.player_sprite, self.enemy_list)) > 0:
+        # Check for collisions between the player and the enemies
+        player_collisions = arcade.check_for_collision_with_list(self.player_sprite, self.enemy_list)
+
+        if len(player_collisions) > 0:
             print("GAMEOVER")
-            for player in self.player_shot_list:
-                player.kill()
-            for enemy in self.enemy_list:
+            # Kill player
+            # Right now im not killing the player 
+            # as i will properly result in a couple of errors
+            # self.player_sprite.kill()
+            # Remove one live from PLAYER_LIVES
+            self.player_lives -= 1
+            # Kill enemys
+            for enemy in player_collisions:
                 enemy.kill()
 
     def on_key_press(self, key, modifiers):
@@ -282,28 +325,28 @@ class MyGame(arcade.Window):
 
         # Track state of arrow keys
         if key == arcade.key.UP:
-            #self.up_pressed = True
-            #changes the angle of the player
+            # self.up_pressed = True
+            # changes the angle of the player
             self.player_sprite.angle = 0
 
         elif key == arcade.key.DOWN:
-            #self.down_pressed = True
+            # self.down_pressed = True
             self.player_sprite.angle = 180
 
         elif key == arcade.key.LEFT:
-            #self.left_pressed = True
+            # self.left_pressed = True
             self.player_sprite.angle = 90
 
         elif key == arcade.key.RIGHT:
-            #self.right_pressed = True
+            # self.right_pressed = True
             self.player_sprite.angle = 270
 
 
         if key == arcade.key.SPACE:
 
-            #Creates a new shot
+            # Creates a new shot
             new_shot = PlayerShot(self.player_sprite)
-            #Adds the shot to the list of shots
+            # Adds the shot to the list of shots
             self.player_shot_list.append(new_shot)
 
     def on_key_release(self, key, modifiers):

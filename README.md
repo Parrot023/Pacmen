@@ -12,6 +12,10 @@ Using the python 3 library **Arcade**
 ## LOG
 Log of what has happened
 
+### 23rd of October 2019
+- Added frame count
+- The enemy now has lives
+
 ### 9th of October 2019
 - The enemy now spawns every second.
 - Before this change the enemy would spawn randomly.
