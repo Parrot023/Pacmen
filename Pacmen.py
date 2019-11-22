@@ -19,9 +19,11 @@ import arcade
 
 SPRITE_SCALING = 0.5
 
+TILE_SIZE = 48
+
 # Set the size of the screen
-SCREEN_WIDTH = 48 * 10
-SCREEN_HEIGHT = 48 * 10
+SCREEN_WIDTH = TILE_SIZE * 10
+SCREEN_HEIGHT = TILE_SIZE * 10
 
 # Variables controlling the player
 PLAYER_LIVES = 3
@@ -111,7 +113,7 @@ class Level():
 
     def __init__(self):
 
-        #Saying that we wnt to use the global variable LEVEL
+        #Saying that we want to use the global variable LEVEL
         #Idk why this is needed, but without it i get errors
         global LEVEL
 
@@ -121,22 +123,23 @@ class Level():
         for i in self.possible_tiles:
             print("Tile:", self.possible_tiles.index(i), i)
 
-        self.tile_list = arcade.SpriteList()
 
-    def draw(self):
-
-        self.tile_size = 48
+        TILE_SIZE = 48
         #The default tile is used when there are no more maps
         self.default = 13
+
+    def draw(self):
         
+        self.tile_list = arcade.SpriteList()
+
         #Adding tiles to tile list
-        for y in range(int(SCREEN_HEIGHT / self.tile_size)):
-            for x in range(int(SCREEN_WIDTH / self.tile_size)):
+        for y in range(int(SCREEN_HEIGHT / TILE_SIZE)):
+            for x in range(int(SCREEN_WIDTH / TILE_SIZE)):
 
                 try:
-                    tile = Tile(x * self.tile_size + (self.tile_size / 2), y * self.tile_size + (self.tile_size / 2), self.possible_tiles[MAPS[0][LEVEL][9 - y][x]])
+                    tile = Tile(x * TILE_SIZE + (TILE_SIZE / 2), y * TILE_SIZE + (TILE_SIZE/ 2), self.possible_tiles[MAPS[0][LEVEL][9 - y][x]])
                 except Exception as e:
-                    tile = Tile(x * self.tile_size + (self.tile_size / 2), y * self.tile_size + (self.tile_size / 2), self.possible_tiles[self.default])
+                    tile = Tile(x * TILE_SIZE + (TILE_SIZE / 2), y * TILE_SIZE + (TILE_SIZE / 2), self.possible_tiles[self.default])
                     print("No more maps")
 
                 self.tile_list.append(tile)
