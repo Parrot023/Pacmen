@@ -11,6 +11,7 @@ import random
 import math
 import time
 import os
+import sys
 import time
 
 import arcade
@@ -40,6 +41,9 @@ TILE_PATH = "assets/Tiles"
 GAMESTATE = 1
 
 LEVEL = 0
+
+TEXTURE_DIR = "assets/textures"
+
 
 ENEMY_SPAWN_POINTS = [
     [SCREEN_WIDTH / 2, 0],
@@ -119,12 +123,14 @@ class Level():
 
         #Prints out all the tiles in the TILE_PATH folder
         #And adds them to self.possible_tiles
-        self.possible_tiles = os.listdir(TILE_PATH)
+        self.possible_tiles = sorted(os.listdir(TILE_PATH))
         for i in self.possible_tiles:
             print("Tile:", self.possible_tiles.index(i), i)
 
 
         TILE_SIZE = 48
+        # To do get file dimensions
+
         #The default tile is used when there are no more maps
         self.default = 13
 
@@ -151,7 +157,6 @@ class Tile(arcade.Sprite):
     A tile sprite used to create a level
     """
 
-
     def __init__(self, center_x, center_y, file_name):
         
         #texture is giving by the level
@@ -161,27 +166,27 @@ class Tile(arcade.Sprite):
         self.center_x = center_x
         self.center_y = center_y
 
-class Explosion(arcade.Sprite):
-    """
-    An explsosion
-    """
+# class Explosion(arcade.Sprite):
+#     """
+#     An explsosion
+#     """
 
-    def __init__(self, texture_list, center_x = 0, center_y = 0):
+#     def __init__(self, texture_list, center_x = 0, center_y = 0):
 
-        super().__init__("assets/explosion/textures/explosion1.png")
+#         super().__init__("assets/textures/explosion/explosion1.png")
 
-        self.cur_texture_index = 0
-        self.textures = texture_list
+#         self.cur_texture_index = 0
+#         self.textures = texture_list
 
-    def update(self):
+#     def update(self):
 
-        print("exploded")
+#         print("exploded")
 
-        self.cur_texture_index += 1
-        if self.cur_texture_index < len(self.textures):
-            self.set_texture(self.cur_texture_index)
-        else:
-            self.remove_from_sprite_lists()
+#         self.cur_texture_index += 1
+#         if self.cur_texture_index < len(self.textures):
+#             self.set_texture(self.cur_texture_index)
+#         else:
+#             self.remove_from_sprite_lists()
 
 class Player(arcade.Sprite):
     """
@@ -221,7 +226,7 @@ class PlayerShot(arcade.Sprite):
     A shot fired by the Player
     """
 
-    def __init__(self, player):
+    def __init__(self, player, texture_list):
         """
         Setup new PlayerShot object
         """
@@ -234,6 +239,14 @@ class PlayerShot(arcade.Sprite):
         self.change_x = math.cos(player.radians + (math.pi / 2)) * PLAYER_SHOT_SPEED
         self.change_y = math.sin(player.radians + (math.pi / 2)) * PLAYER_SHOT_SPEED
         self.angle = player.angle
+
+        self.animation_textures = texture_list
+
+        self.time_now = 0
+        self.time_before = 0
+        self.frame_timer = 0
+        self.update_delta_time = 0
+        self.cur_texture_index = 0
 
     def update(self):
         """
@@ -248,9 +261,28 @@ class PlayerShot(arcade.Sprite):
         if self.bottom > SCREEN_HEIGHT:
             self.kill()
 
+    def update_animation(self):
+        #Calculating delta_time
+        self.time_before = self.time_now
+        self.time_now = time.time()
+        self.update_delta_time = self.time_now - self.time_before
+
+        #adding delta_time to frame timer
+        self.frame_timer += self.update_delta_time
+        print("updating")
+
+        #increasing cur_texture_index
+        if (self.frame_timer > 5/60):
+            self.cur_texture_index += 1
+            if self.cur_texture_index > len(self.animation_textures) - 1:
+                self.cur_texture_index = 1
+            self.texture = self.animation_textures[self.cur_texture_index]
+            self.frame_timer = 0
+
+
 class Enemy(arcade.Sprite):
 
-    def __init__(self, target):
+    def __init__(self, target, texture_list):
         """
         Setup new Enemy object
         """
@@ -286,10 +318,10 @@ class Enemy(arcade.Sprite):
         # Based on radians
         self.radians = angle
 
-        self.move_textures = []
+        self.move_textures = texture_list
 
-        for i in os.listdir("assets/Pacman"):
-            self.move_textures.append(arcade.load_texture("assets/Pacman/{}".format(i), scale=0.2))
+        # for i in os.listdir("assets/Pacman"):
+        #     self.move_textures.append(arcade.load_texture("assets/Pacman/{}".format(i), scale=0.2))
 
         self.time_now = 0
         self.time_before = 0
@@ -303,12 +335,15 @@ class Enemy(arcade.Sprite):
 
     def update_animation(self):
 
+        #Calculating delta_time
         self.time_before = self.time_now
         self.time_now = time.time()
         self.update_delta_time = self.time_now - self.time_before
 
+        #adding delta_time to frame timer
         self.frame_timer += self.update_delta_time
 
+        #increasing cur_texture_index
         if (self.frame_timer > 0.2):
             self.cur_texture_index += 1
             if self.cur_texture_index > len(self.move_textures) - 1:
@@ -329,11 +364,31 @@ class MyGame(arcade.Window):
         # Call the parent class initializer
         super().__init__(width, height)
 
-        self.explosion_texture_list = []
-        self.textures = os.listdir("assets/explosion/textures")
+        self.explosion_textures = []
+        self.enemy_textures = []
+        self.player_shot_textures = []
         
-        for i in self.textures:
-            self.explosion_texture_list.append(arcade.load_texture("assets/explosion/textures/" + i))
+        # importing textures for explosion animation
+        # os.listdir returns the list in an unknown and incorrect order
+        # Therfore we sort them with sorted()
+        for i in sorted(os.listdir(TEXTURE_DIR + "/explosion")):
+            self.explosion_textures.append(arcade.load_texture(TEXTURE_DIR + "/explosion/" + i))
+
+        # importing textures for enemy animation
+        # os.listdir returns the list in an unknown and incorrect order
+        # Therfore we sort them with sorted()
+        for i in sorted(os.listdir(TEXTURE_DIR + "/enemy")):
+            self.enemy_textures.append(arcade.load_texture(TEXTURE_DIR + "/enemy/{}".format(i), scale = 0.2))
+
+        for i in sorted(os.listdir(TEXTURE_DIR + "/player_shot")):
+            self.player_shot_textures.append(arcade.load_texture(TEXTURE_DIR + "/player_shot/{}".format(i), scale = SPRITE_SCALING))
+
+        # checks to see if any textures were found
+        if self.enemy_textures == [] or self.explosion_textures == [] or self.player_shot_textures == []:
+            #exits program with message and exit code 1
+            print("Missing textures in", TEXTURE_DIR)
+            sys.exit(1)
+
 
         # Variable that will hold a list of shots fired by the player
         self.player_shot_list = None
@@ -390,17 +445,20 @@ class MyGame(arcade.Window):
         # This command has to happen before we start drawing
         arcade.start_render()
 
+        # Drawing the level
         self.level.draw()
 
+        # Drawing the explosions 
         self.explosions_list.draw()
+
+        # Drawing the enemies
+        self.enemy_list.draw()
+
+        # Drawing the player shots
+        self.player_shot_list.draw()
 
         # Draw the player sprite
         self.player_sprite.draw()
-
-        self.enemy_list.draw()
-
-        # Draw the player shot
-        self.player_shot_list.draw()
 
         # Draw players score on screen
         arcade.draw_text(
@@ -448,6 +506,7 @@ class MyGame(arcade.Window):
 
         # Update the player shots
         self.player_shot_list.update()
+        self.player_shot_list.update_animation()
 
         # Update the enemy sprite
         self.enemy_list.update()
@@ -458,7 +517,7 @@ class MyGame(arcade.Window):
         # Checks timer
         # Spawns an enemmy if the timer is equal or over ENEMY_SPAWN_SPEED
         if self.time_since_enemy_spawn >= ENEMY_SPAWN_SPEED:
-            enemy = Enemy(self.player_sprite)
+            enemy = Enemy(self.player_sprite, self.enemy_textures)
             self.enemy_list.append(enemy)
             self.time_since_enemy_spawn = 0
 
@@ -477,7 +536,7 @@ class MyGame(arcade.Window):
 
         #Loops through explosions to kill when end of animation is reached
         for i in self.explosions_list:
-            if (i.cur_texture_index >= len(self.explosion_texture_list) - 1):
+            if (i.texture == self.explosion_textures[-1]):
                 i.kill()
 
         self.explosions_list.update()
@@ -559,7 +618,7 @@ class MyGame(arcade.Window):
         if key == arcade.key.SPACE:
 
             # Creates a new shot
-            new_shot = PlayerShot(self.player_sprite)
+            new_shot = PlayerShot(self.player_sprite, self.player_shot_textures)
             # Adds the shot to the list of shots
             self.player_shot_list.append(new_shot)
 
@@ -587,9 +646,6 @@ class MyGame(arcade.Window):
         #Define self.player.explode
         self.player_sprite.explode()
 
-        explosion = Explosion(self.explosion_texture_list, 0, 0)
-        self.explosions_list.append(explosion)
-
     def new_explosion(self, x, y):
 
         # Create explosion
@@ -603,7 +659,7 @@ class MyGame(arcade.Window):
         explosion.textures = []
 
         #add our explosion textures to the textures list
-        explosion.textures = self.explosion_texture_list
+        explosion.textures = self.explosion_textures
 
         #updates the animation to get first texture
         explosion.update_animation()
