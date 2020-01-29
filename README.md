@@ -12,10 +12,17 @@ Using the python 3 library **Arcade**
 ## LOG
 Log of what has happened
 
+
+### 22nd of January 2020
+- The player now has limited ammo
+- Added Power Ups:
+  - One Power Up gives extra ammo
+  - One Power Up gives extra lives
+
 ### 27th of November 2019
 - player_shots are now animated, the same way as the enemies. by adding update_animation()
 - added update_animation to player_shot for animations
-- tiles and textures are now soreted alphabatically when using os.listdir using sorted()
+- tiles and textures are now sorted alphabetically when using os.listdir using sorted()
     - Example: sorted(os.listdir(path))
 
 ### 22nd of November 2019
@@ -32,7 +39,7 @@ Log of what has happened
     - Killing an enemy spawns an explosion
         - An explosion is its own sprite
         - This way it can be used whenever its needed
-        - An explosion is an AnimatedTimeSprite from arcade 
+        - An explosion is an AnimatedTimeSprite from arcade
 
 ### 23rd of October 2019
 - Added frame count
