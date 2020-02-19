@@ -12,6 +12,9 @@ Using the python 3 library **Arcade**
 ## LOG
 Log of what has happened
 
+### 23rd of January 2020
+- New powerup
+  - Changes ENEMY_SPAWN_SPEED by a random amount 
 
 ### 22nd of January 2020
 - The player now has limited ammo
@@ -28,7 +31,7 @@ Log of what has happened
 ### 22nd of November 2019
 - Lots of things have happened
 - The game now have levels
-    - Tach level has its on map and maps are drawn with tiles from kenney.nl
+    - each level has its on map and maps are drawn with tiles from kenney.nl
     - Maps is defined by a list of lists
 - Animations
     - The enemies are now animated

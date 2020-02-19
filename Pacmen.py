@@ -118,23 +118,58 @@ class PowerUp(arcade.Sprite):
         arcade.load_texture(
             "assets/textures/PowerUps/live.png", scale=SPRITE_SCALING * 2),
         arcade.load_texture(
-            "assets/textures/PowerUps/ammo.png", scale=SPRITE_SCALING * 2)
+            "assets/textures/PowerUps/ammo.png", scale=SPRITE_SCALING * 2),
+        arcade.load_texture(
+            "assets/textures/PowerUps/bolt_gold.png", scale=SPRITE_SCALING * 2),
+        arcade.load_texture(
+            "assets/textures/PowerUps/e_speed.png", scale=SPRITE_SCALING * 2),
     ]
 
-    def __init__(self, type):
+    # types = [
+    #     {
+    #         "lives": 10,
+    #         "ammo": 0,
+    #         "shot_go_through": False,
+    #         "enemy_spawn_speed": 0
+    #     },
+    #     {
+    #         "lives": 0,
+    #         "ammo": 10,
+    #         "shot_go_through": False,
+    #         "enemy_spawn_speed": 0
+    #     },
+    #     {
+    #         "lives": 0,
+    #         "ammo": 0,
+    #         "shot_go_through": True,
+    #         "enemy_spawn_speed": 0
+    #     },
+    #     {
+    #         "lives": 0,
+    #         "ammo": 0,
+    #         "shot_go_through": False,
+    #         "enemy_spawn_speed": 10
+    #     }
+    # ]
+
+    def __init__(self, target, type=random.randint(0, 2)):
 
         super().__init__("assets/textures/PowerUps/live.png", SPRITE_SCALING * 2)
 
         self.parameters = {
             "lives": 0,
             "ammo": 0,
+            "shot_go_through": False,
+            "enemy_spawn_speed": 0
         }
+
+        #self.parameters = random.choice(PowerUp.types)
 
         self.spawn_point = random.choice(ENEMY_SPAWN_POINTS)
         self.center_x, self.center_y = self.spawn_point
 
-        self.dest_x = SCREEN_WIDTH / 2
-        self.dest_y = SCREEN_HEIGHT / 2
+        self.dest_x = target.center_x
+        self.dest_y = target.center_y
         # Sets the start location
         self.start_x = self.center_x
         self.start_y = self.center_y
@@ -151,10 +186,17 @@ class PowerUp(arcade.Sprite):
 
         if type == 0:
             self.parameters["lives"] = random.randint(0, 10)
-            self.texture = PowerUp.textures[0]
         elif type == 1:
             self.parameters["ammo"] = random.randint(0, 10)
-            self.texture = PowerUp.textures[1]
+        elif type == 2:
+            self.parameters["shot_go_through"] = True
+        elif type == 3:
+            # Percentage of how much ENEMY_SPAWN_SPEED should be increased or decreased
+            self.parameters["enemy_spawn_speed"] = random.randint(-30, 20)
+
+        # self.parameters = PowerUp.types[type]
+        # print(self.parameters)
+        self.texture = PowerUp.textures[type]
 
     def update(self):
 
@@ -254,14 +296,15 @@ class Player(arcade.Sprite):
 
     textures = {
         "has_ammo": arcade.load_texture("images/playerShip1_blue.png", scale=SPRITE_SCALING),
-        "no_ammo": arcade.load_texture("images/playerShip1_red.png", scale=SPRITE_SCALING)
+        "no_ammo": arcade.load_texture("images/playerShip1_orange.png", scale=SPRITE_SCALING),
+        "has_super_power": arcade.load_texture("images/playerShip1_green.png", scale=SPRITE_SCALING)
+
     }
 
     def __init__(self, center_x=0, center_y=0):
         """
         Setup new Player object
         """
-
         # Set the graphics to use for the sprite
         super().__init__("images/playerShip1_blue.png", SPRITE_SCALING)
 
@@ -269,6 +312,8 @@ class Player(arcade.Sprite):
         self.center_y = center_y
 
         self.ammo = PLAYER_DEFAULT_AMMO
+
+        self.shot_go_through = False
 
     def update(self):
         """
@@ -283,10 +328,14 @@ class Player(arcade.Sprite):
         else:
             self.texture = Player.textures["no_ammo"]
 
+        if self.shot_go_through:
+            self.texture = Player.textures["has_super_power"]
+
         # self.texture = Player.textures["has_ammo"] if self.ammo > 0 else Player.textures["no_ammo"]
 
     def explode(self):
         self.angle = 100
+        self.ammo = 10
 
 
 class PlayerShot(arcade.Sprite):
@@ -554,7 +603,7 @@ class MyGame(arcade.Window):
 
         # Player lives
         arcade.draw_text(
-            "LIVES: {}".format(self.player_lives),  # Text to show
+            "LIVES: {}".format(PLAYER_LIVES),  # Text to show
             10,                  # X position
             SCREEN_HEIGHT - 40,  # Y positon
             arcade.color.WHITE   # Color of text
@@ -575,6 +624,12 @@ class MyGame(arcade.Window):
             SCREEN_HEIGHT - 80,  # Y positon
             arcade.color.WHITE   # Color of text
         )
+        arcade.draw_text(
+            "E_speed {}".format(ENEMY_SPAWN_SPEED),  # Text to show
+            10,                  # X position
+            SCREEN_HEIGHT - 100,  # Y positon
+            arcade.color.WHITE   # Color of text
+        )
 
     def on_update(self, delta_time):
         """
@@ -589,6 +644,7 @@ class MyGame(arcade.Window):
         # to change it
         global PLAYER_LIVES
         global LEVEL
+        global ENEMY_SPAWN_SPEED
 
         # Adds delta time to time_since_enemy_spawn and frame_timer
         self.time_since_enemy_spawn += delta_time
@@ -616,11 +672,11 @@ class MyGame(arcade.Window):
         # Spawns an enemmy if the timer is equal or over ENEMY_SPAWN_SPEED
         if self.time_since_enemy_spawn >= ENEMY_SPAWN_SPEED:
 
-            if (random.random() > 0.5):
+            if (random.random() > 0.10):
                 enemy = Enemy(self.player_sprite, self.enemy_textures)
                 self.enemy_list.append(enemy)
             else:
-                powerup = PowerUp(random.randint(0, 1))
+                powerup = PowerUp(self.player_sprite, random.randint(0, 3))
                 self.powerup_list.append(powerup)
             self.time_since_enemy_spawn = 0
 
@@ -643,6 +699,7 @@ class MyGame(arcade.Window):
         self.explosions_list.update()
         self.explosions_list.update_animation()
 
+        # Checking if a powerup has hit the player
         for powerup in self.powerup_list:
             collisions = arcade.check_for_collision(
                 powerup, self.player_sprite)
@@ -655,9 +712,14 @@ class MyGame(arcade.Window):
                 self.new_explosion(powerup.center_x, powerup.center_y)
 
             if collisions:
+
                 self.player_sprite.ammo += powerup.parameters["ammo"]
+                self.player_sprite.shot_go_through = powerup.parameters["shot_go_through"]
                 PLAYER_LIVES += powerup.parameters["lives"]
-                print(powerup.parameters["lives"])
+                ENEMY_SPAWN_SPEED += ENEMY_SPAWN_SPEED / 100 * \
+                    powerup.parameters["enemy_spawn_speed"]
+                print(powerup.parameters["enemy_spawn_speed"])
+
                 powerup.kill()
 
         # Loops through each enemy to checks if an enemy has hit a shot
@@ -673,12 +735,11 @@ class MyGame(arcade.Window):
             for shot in collisions:
                 self.player_score += enemy.value
 
-                # create new explosion where the shot meets the enemy
-
-                # it is needed to update animation to init first texture
-                # otherwise draw will be called before update_animation
-
-                shot.kill()
+                if self.player_sprite.shot_go_through:
+                    pass
+                    self.player_sprite.shot_go_through = False
+                else:
+                    shot.kill()
                 print("Enemy killed!!!!!!!!!!!")
                 # Adds a point to the score
 
@@ -732,10 +793,6 @@ class MyGame(arcade.Window):
         elif key == arcade.key.RIGHT:
             # self.right_pressed = True
             self.player_sprite.angle = 270
-
-        if key == arcade.key.R:
-
-            self.player_sprite.ammo = PLAYER_DEFAULT_AMMO
 
         if key == arcade.key.SPACE:
 
