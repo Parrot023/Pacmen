@@ -58,7 +58,7 @@ MAPS = [
     [
         [2, 2, 2, 1, 0, 0, 1, 1, 1, 1],
         [2, 2, 2, 1, 0, 0, 1, 1, 1, 1],
-        [1, 1, 1, 1, 0, 0, 1, 1, 1, 1],
+        [2, 2, 2, 1, 0, 0, 1, 1, 1, 1],
         [1, 1, 1, 1, 0, 0, 1, 1, 1, 1],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -70,7 +70,7 @@ MAPS = [
     [
         [2, 2, 2, 1, 7, 7, 1, 1, 1, 1],
         [2, 2, 2, 1, 7, 7, 1, 1, 1, 1],
-        [1, 1, 1, 1, 7, 7, 1, 1, 1, 1],
+        [2, 2, 2, 1, 7, 7, 1, 1, 1, 1],
         [1, 1, 1, 1, 7, 7, 1, 1, 1, 1],
         [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
         [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
@@ -82,7 +82,7 @@ MAPS = [
     [
         [2, 2, 2, 7, 7, 7, 7, 7, 7, 7],
         [2, 2, 2, 7, 7, 7, 7, 7, 7, 7],
-        [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+        [2, 2, 2, 7, 7, 7, 7, 7, 7, 7],
         [7, 7, 7, 7, 6, 6, 7, 7, 7, 7],
         [7, 7, 7, 6, 7, 7, 6, 7, 7, 7],
         [7, 7, 7, 6, 7, 7, 6, 7, 7, 7],
@@ -94,7 +94,7 @@ MAPS = [
     [
         [2, 2, 2, 4, 4, 4, 4, 4, 4, 4],
         [2, 2, 2, 4, 4, 4, 4, 4, 4, 4],
-        [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [2, 2, 2, 4, 4, 4, 4, 4, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
@@ -114,54 +114,29 @@ ENEMY_SPAWN_SPEED = 1
 
 class PowerUp(arcade.Sprite):
 
-    textures = [
-        arcade.load_texture(
-            "assets/textures/PowerUps/live.png", scale=SPRITE_SCALING * 2),
-        arcade.load_texture(
-            "assets/textures/PowerUps/ammo.png", scale=SPRITE_SCALING * 2),
-        arcade.load_texture(
-            "assets/textures/PowerUps/bolt_gold.png", scale=SPRITE_SCALING * 2),
-        arcade.load_texture(
-            "assets/textures/PowerUps/e_speed.png", scale=SPRITE_SCALING * 2),
+    types = [
+        {
+            "name": "lives",
+            "image": "assets/textures/PowerUps/live.png",
+            "lives": random.randint(0, 10),
+        },
+        {
+            "name": "ammo",
+            "image": "assets/textures/PowerUps/ammo.png",
+            "ammo": random.randint(0, 10),
+        },
+        {
+            "name": "e_speed",
+            "image": "assets/textures/PowerUps/e_speed.png",
+            "e_speed": random.randint(-20, 20)
+        }
     ]
-
-    # types = [
-    #     {
-    #         "lives": 10,
-    #         "ammo": 0,
-    #         "shot_go_through": False,
-    #         "enemy_spawn_speed": 0
-    #     },
-    #     {
-    #         "lives": 0,
-    #         "ammo": 10,
-    #         "shot_go_through": False,
-    #         "enemy_spawn_speed": 0
-    #     },
-    #     {
-    #         "lives": 0,
-    #         "ammo": 0,
-    #         "shot_go_through": True,
-    #         "enemy_spawn_speed": 0
-    #     },
-    #     {
-    #         "lives": 0,
-    #         "ammo": 0,
-    #         "shot_go_through": False,
-    #         "enemy_spawn_speed": 10
-    #     }
-    # ]
 
     def __init__(self, target, type=random.randint(0, 2)):
 
         super().__init__("assets/textures/PowerUps/live.png", SPRITE_SCALING * 2)
 
-        self.parameters = {
-            "lives": 0,
-            "ammo": 0,
-            "shot_go_through": False,
-            "enemy_spawn_speed": 0
-        }
+        self.type = random.choice(PowerUp.types)
 
         #self.parameters = random.choice(PowerUp.types)
 
@@ -184,22 +159,16 @@ class PowerUp(arcade.Sprite):
         self.change_x = math.cos(angle)
         self.change_y = math.sin(angle)
 
-        if type == 0:
-            self.parameters["lives"] = random.randint(0, 10)
-        elif type == 1:
-            self.parameters["ammo"] = random.randint(0, 10)
-        elif type == 2:
-            self.parameters["shot_go_through"] = True
-        elif type == 3:
-            # Percentage of how much ENEMY_SPAWN_SPEED should be increased or decreased
-            self.parameters["enemy_spawn_speed"] = random.randint(-30, 20)
+        # Speed of which the powerup will rotate
+        self.rotation_speed = random.randint(-2,2)
 
         # self.parameters = PowerUp.types[type]
         # print(self.parameters)
-        self.texture = PowerUp.textures[type]
+        self.texture = arcade.load_texture(self.type["image"])
 
     def update(self):
 
+        self.angle += self.rotation_speed
         self.center_x += self.change_x
         self.center_y += self.change_y
 
@@ -219,8 +188,6 @@ class Level():
         # Prints out all the tiles in the TILE_PATH folder
         # And adds them to self.possible_tiles
         self.possible_tiles = sorted(os.listdir(TILE_PATH))
-        for i in self.possible_tiles:
-            print("Tile:", self.possible_tiles.index(i), i)
 
         TILE_SIZE = 48
         # To do get file dimensions
@@ -297,8 +264,6 @@ class Player(arcade.Sprite):
     textures = {
         "has_ammo": arcade.load_texture("images/playerShip1_blue.png", scale=SPRITE_SCALING),
         "no_ammo": arcade.load_texture("images/playerShip1_orange.png", scale=SPRITE_SCALING),
-        "has_super_power": arcade.load_texture("images/playerShip1_green.png", scale=SPRITE_SCALING)
-
     }
 
     def __init__(self, center_x=0, center_y=0):
@@ -313,8 +278,6 @@ class Player(arcade.Sprite):
 
         self.ammo = PLAYER_DEFAULT_AMMO
 
-        self.shot_go_through = False
-
     def update(self):
         """
         Move the sprite
@@ -327,9 +290,6 @@ class Player(arcade.Sprite):
             self.texture = Player.textures["has_ammo"]
         else:
             self.texture = Player.textures["no_ammo"]
-
-        if self.shot_go_through:
-            self.texture = Player.textures["has_super_power"]
 
         # self.texture = Player.textures["has_ammo"] if self.ammo > 0 else Player.textures["no_ammo"]
 
@@ -388,7 +348,6 @@ class PlayerShot(arcade.Sprite):
 
         # adding delta_time to frame timer
         self.frame_timer += self.update_delta_time
-        print("updating")
 
         # increasing cur_texture_index
         if (self.frame_timer > 5 / 60):
@@ -672,7 +631,7 @@ class MyGame(arcade.Window):
         # Spawns an enemmy if the timer is equal or over ENEMY_SPAWN_SPEED
         if self.time_since_enemy_spawn >= ENEMY_SPAWN_SPEED:
 
-            if (random.random() > 0.10):
+            if (random.random() > 0.9):
                 enemy = Enemy(self.player_sprite, self.enemy_textures)
                 self.enemy_list.append(enemy)
             else:
@@ -687,7 +646,6 @@ class MyGame(arcade.Window):
             # Sets self.fps to frame count every second
             self.fps = self.frame_count
             # Prints the fps
-            print("FPS: {}".format(self.fps))
             # Resets frame_count
             self.frame_count = 0
 
@@ -713,12 +671,9 @@ class MyGame(arcade.Window):
 
             if collisions:
 
-                self.player_sprite.ammo += powerup.parameters["ammo"]
-                self.player_sprite.shot_go_through = powerup.parameters["shot_go_through"]
-                PLAYER_LIVES += powerup.parameters["lives"]
-                ENEMY_SPAWN_SPEED += ENEMY_SPAWN_SPEED / 100 * \
-                    powerup.parameters["enemy_spawn_speed"]
-                print(powerup.parameters["enemy_spawn_speed"])
+                self.player_sprite.ammo += powerup.type.get("ammo", 0)
+                PLAYER_LIVES += powerup.type.get("lives", 0)
+                ENEMY_SPAWN_SPEED += ENEMY_SPAWN_SPEED / 100 * powerup.type.get("e_speed", 0)
 
                 powerup.kill()
 
@@ -734,13 +689,8 @@ class MyGame(arcade.Window):
             # Kills each colliding shot
             for shot in collisions:
                 self.player_score += enemy.value
-
-                if self.player_sprite.shot_go_through:
-                    pass
-                    self.player_sprite.shot_go_through = False
-                else:
-                    shot.kill()
-                print("Enemy killed!!!!!!!!!!!")
+                shot.kill()
+                print("An enemy was killed")
                 # Adds a point to the score
 
         # Check for collisions between the player and the enemies
@@ -803,7 +753,7 @@ class MyGame(arcade.Window):
                                       self.player_shot_textures)
                 self.player_shot_list.append(new_shot)
             else:
-                print("no ammo left")
+                print("No ammo left")
             # Adds the shot to the list of shots
 
     def on_key_release(self, key, modifiers):

@@ -12,9 +12,13 @@ Using the python 3 library **Arcade**
 ## LOG
 Log of what has happened
 
-### 23rd of January 2020
+### 26th of February 2020
+- Changed the way powerups are handled
+  - I now have a list of types each type is a dictionary containing info on the powerup, name, image and modifiers. When coliding with the player each modifier will change whatever the modifier is supposed to change if a powerup does not contain a certain modifier, it is just seen as if it had had the modifier but the value of modification was 0
+
+### 19th of February 2020
 - New powerup
-  - Changes ENEMY_SPAWN_SPEED by a random amount 
+  - Changes ENEMY_SPAWN_SPEED by a random amount
 
 ### 22nd of January 2020
 - The player now has limited ammo
