@@ -204,11 +204,9 @@ class Level():
             for x in range(int(SCREEN_WIDTH / TILE_SIZE)):
 
                 try:
-                    tile = Tile(x * TILE_SIZE + (TILE_SIZE / 2), y * TILE_SIZE +
-                                (TILE_SIZE / 2), self.possible_tiles[MAPS[0][LEVEL][9 - y][x]])
+                    tile = Tile(x * TILE_SIZE + (TILE_SIZE / 2), y * TILE_SIZE + (TILE_SIZE / 2), self.possible_tiles[MAPS[0][LEVEL][9 - y][x]])
                 except Exception as e:
-                    tile = Tile(x * TILE_SIZE + (TILE_SIZE / 2), y * TILE_SIZE +
-                                (TILE_SIZE / 2), self.possible_tiles[self.default])
+                    tile = Tile(x * TILE_SIZE + (TILE_SIZE / 2), y * TILE_SIZE + (TILE_SIZE / 2), self.possible_tiles[self.default])
                     # print("No more maps")
 
                 self.tile_list.append(tile)
@@ -277,6 +275,8 @@ class Player(arcade.Sprite):
         self.center_y = center_y
 
         self.ammo = PLAYER_DEFAULT_AMMO
+
+        self.hyperspace = False
 
     def update(self):
         """
@@ -726,23 +726,40 @@ class MyGame(arcade.Window):
         Called whenever a key is pressed.
         """
 
+        # Enable hyperspace
+        if key == arcade.key.H:
+            self.player_sprite.hyperspace = True
+            print(self.player_sprite.hyperspace)
+
         # Track state of arrow keys
         if key == arcade.key.UP:
             # self.up_pressed = True
             # changes the angle of the player
             self.player_sprite.angle = 0
 
+            if (self.player_sprite.hyperspace):
+                self.player_sprite.center_y += TILE_SIZE
+
         elif key == arcade.key.DOWN:
             # self.down_pressed = True
             self.player_sprite.angle = 180
+
+            if (self.player_sprite.hyperspace):
+                self.player_sprite.center_y -= TILE_SIZE
 
         elif key == arcade.key.LEFT:
             # self.left_pressed = True
             self.player_sprite.angle = 90
 
+            if (self.player_sprite.hyperspace):
+                self.player_sprite.center_x -= TILE_SIZE
+
         elif key == arcade.key.RIGHT:
             # self.right_pressed = True
             self.player_sprite.angle = 270
+
+            if (self.player_sprite.hyperspace):
+                self.player_sprite.center_x += TILE_SIZE
 
         if key == arcade.key.SPACE:
 
@@ -760,6 +777,10 @@ class MyGame(arcade.Window):
         """
         Called whenever a key is released.
         """
+
+        if key == arcade.key.H:
+            self.player_sprite.hyperspace = False
+            print(self.player_sprite.hyperspace)
 
         if key == arcade.key.UP:
             self.up_pressed = False

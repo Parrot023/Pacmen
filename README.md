@@ -12,6 +12,11 @@ Using the python 3 library **Arcade**
 ## LOG
 Log of what has happened
 
+### 4th of March 2020
+- Added hyperspace
+  - The player can now move around in a grid
+  - To do next time: Change enemy spawn locations
+
 ### 26th of February 2020
 - Changed the way powerups are handled
   - I now have a list of types each type is a dictionary containing info on the powerup, name, image and modifiers. When coliding with the player each modifier will change whatever the modifier is supposed to change if a powerup does not contain a certain modifier, it is just seen as if it had had the modifier but the value of modification was 0
