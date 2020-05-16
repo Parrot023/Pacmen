@@ -1,9 +1,9 @@
 # Exercise in creating games in Python
-Using the python 3 library **Arcade**
+Using the python 3 library **Arcade** found at https://arcade.academy/
 
 **Python 2 is not supported**
 
-### What have i learned
+### What have I learned
 - Creating a game using **Arcade**
 - Rotating a sprite based on its direction (Using sin and cos)
 - Calculating an angle towards a destination point using math.atan2
